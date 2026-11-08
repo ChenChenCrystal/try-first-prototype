@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Try First Task Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
+<style>
+/* Layout: a working study screen on the left, the researcher's live record on the right. */
+:root{
+  --bg:#f3f5f4; --paper:#ffffff; --ink:#18231f; --muted:#5a6964; --line:#d3dbd7; --soft:#e7edea;
+  --accent:#0d6650; --accent-soft:#dcefe8; --ai:#a4510b; --ai-soft:#f8e9da; --bad:#a32b2b; --good:#0d6650;
+  --spss:#eef1f6; --spss-line:#aab4c4;
+  --display:"Newsreader",Georgia,serif; --body:"IBM Plex Sans","Segoe UI",Arial,sans-serif; --mono:"IBM Plex Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121a17; --paper:#1a2521; --ink:#e7eeeb; --muted:#a2b1ab; --line:#33423c; --soft:#24312c;
+  --accent:#62c9a9; --accent-soft:#1d3a31; --ai:#eda668; --ai-soft:#3d2b1b; --bad:#ee8d8d; --good:#62c9a9;
+  --spss:#1f2733; --spss-line:#45546a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121a17; --paper:#1a2521; --ink:#e7eeeb; --muted:#a2b1ab; --line:#33423c; --soft:#24312c;
+  --accent:#62c9a9; --accent-soft:#1d3a31; --ai:#eda668; --ai-soft:#3d2b1b; --bad:#ee8d8d; --good:#62c9a9;
+  --spss:#1f2733; --spss-line:#45546a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body)}
+.wrap{max-width:1240px;margin:0 auto;padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:22px}
+h1,h2{font-family:var(--display);font-weight:600;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4vw,40px)} h2{font-size:24px} h3{font-size:15px;margin:0;font-weight:600}
+p{margin:0}
+.lead{color:var(--muted);max-width:72ch;margin-top:6px}
+.eyebrow{font:500 11.5px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tab{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;text-align:left;display:grid;gap:1px}
+.tab b{font-weight:600}.tab span{font-size:12.5px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.tab[aria-selected="true"] span{color:inherit;opacity:.85}
+.stage{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+.pane{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:18px;display:grid;gap:14px;min-width:0}
+.panehead{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.scenario{background:var(--soft);border-radius:6px;padding:12px 14px}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px 10px;text-align:left;font-size:13.5px;line-height:1.3;min-height:58px;display:grid;gap:2px;align-content:start}
+.card small{color:var(--muted);font-size:11.5px}
+.card.seen{border-color:var(--accent);background:var(--accent-soft)}
+.card.on{outline:2px solid var(--accent)}
+.viewer{border:1px dashed var(--line);border-radius:6px;padding:12px;min-height:118px;overflow-x:auto}
+.viewer .hint{color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600}
+.spss{background:var(--spss);font-family:var(--mono);font-size:12.5px}
+.spss th,.spss td{border:1px solid var(--spss-line);text-align:right;white-space:nowrap}
+.spss th:first-child,.spss td:first-child{text-align:left}
+.q{display:grid;gap:5px}
+.q legend,.qlabel{font-weight:500;padding:0}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:4px;min-width:0}
+label.opt{display:flex;gap:8px;align-items:flex-start}
+label.opt input{margin-top:4px}
+textarea,input[type=text]{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:6px;padding:8px 10px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--accent);color:var(--paper);border:1px solid var(--accent);border-radius:6px;padding:8px 14px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.ai{background:var(--ai);border-color:var(--ai);color:var(--paper)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.aibox{background:var(--ai-soft);border:1px solid var(--ai);border-radius:6px;padding:12px 14px;display:grid;gap:8px}
+.aibox h3{color:var(--ai)}
+.chat{display:grid;gap:6px;max-height:210px;overflow:auto}
+.msg{padding:7px 10px;border-radius:6px;font-size:14px}
+.msg.s{background:var(--soft);justify-self:end;max-width:88%}
+.msg.t{background:var(--paper);border:1px solid var(--line);max-width:92%}
+.steps{margin:0;padding-left:20px;display:grid;gap:2px;font-size:14px}
+.note{font-size:12.5px;color:var(--muted)}
+.result{border-radius:6px;padding:12px 14px;background:var(--accent-soft);display:grid;gap:6px}
+.stat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.stat div{background:var(--soft);border-radius:6px;padding:8px 10px;min-width:0}
+.stat b{display:block;font:500 20px var(--mono);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.formula{font:13px/1.6 var(--mono);background:var(--soft);border-radius:6px;padding:10px 12px;overflow-x:auto}
+.formula b{color:var(--accent);font-weight:500}
+.log{font:12px/1.55 var(--mono);max-height:176px;overflow:auto;background:var(--soft);border-radius:6px;padding:8px 10px}
+.log div{display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px}
+.scroll{overflow-x:auto}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;counter-reset:s}
+.flow div{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;min-width:0}
+.flow b{display:block}
+.flow span{font-size:13px;color:var(--muted)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.num{font-variant-numeric:tabular-nums}
+td code{font:12.5px var(--mono)}
+@media (max-width:900px){.stage,.two{grid-template-columns:minmax(0,1fr)}.tabs,.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:no-preference){.card,.tab,.btn{transition:background .12s}}
+</style>
+</head>
+<body>
+
+
+<main class="wrap">
+  <header>
+    <p class="eyebrow">Researcher preview of the Study 2 pilot, one sample problem</p>
+    <h1>Try First, Then Ask: what students see and what we record</h1>
+    <p class="lead">Pick a condition and work the problem on the left. The right side shows the data the website records. In the study, researchers assign each student one link to one condition. Students see only the student screen. They do not see these condition tabs or the researcher view.</p>
+  </header>
+
+  <section class="flow" aria-label="Study sequence">
+    <div><b>Prior-knowledge check</b><span>Short quiz and AI habits</span></div>
+    <div><b>Class task</b><span>[Six] problems like this one, in one condition</span></div>
+    <div><b>After the task</b><span>Correct answers after each problem, then a metacognitive self-esteem measure</span></div>
+    <div><b>One week later</b><span>Ungraded quiz in class, no AI</span></div>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="Condition" id="tabs"></div>
+
+  <div class="stage">
+    <section class="pane" aria-label="Student screen">
+      <div class="panehead">
+        <div><p class="eyebrow">Student screen</p><h2 id="condName"></h2></div>
+        <span class="note">Problem 1 of [6], independent-samples t-test</span>
+      </div>
+      <div class="scenario"><b>Scenario.</b> A researcher compared test scores for two groups of students. Group A studied with practice questions. Group B reread their notes. Does the average score differ between the two groups? Use the information cards to answer.</div>
+
+      <div>
+        <h3>Information cards</h3>
+        <p class="note">Click a card to read it. One card shows at a time.</p>
+      </div>
+      <div class="cards" id="cards"></div>
+      <div class="viewer" id="viewer"></div>
+
+      <div id="aiArea"></div>
+
+      <form id="form" class="q" style="gap:12px">
+        <fieldset><legend>1. Which row of the t-test table should you read?</legend>
+          <label class="opt"><input type="radio" name="q1" id="q1a" value="assumed"> Equal variances assumed</label>
+          <label class="opt"><input type="radio" name="q1" id="q1b" value="notassumed"> Equal variances not assumed</label>
+        </fieldset>
+        <fieldset><legend>2. What is the p value for the group difference?</legend>
+          <label class="opt"><input type="radio" name="q2" id="q2a" value="003"> .003</label>
+          <label class="opt"><input type="radio" name="q2" id="q2b" value="026"> .026</label>
+          <label class="opt"><input type="radio" name="q2" id="q2c" value="053"> .053</label>
+        </fieldset>
+        <fieldset><legend>3. What can you conclude at the .05 level?</legend>
+          <label class="opt"><input type="radio" name="q3" id="q3a" value="a"> Group A scored significantly higher than Group B</label>
+          <label class="opt"><input type="radio" name="q3" id="q3b" value="none"> The groups did not differ significantly</label>
+          <label class="opt"><input type="radio" name="q3" id="q3c" value="b"> Group B scored significantly higher than Group A</label>
+        </fieldset>
+        <div class="q" id="whyBlock" hidden><label class="qlabel" for="why">In one sentence, write your answer and why.</label>
+          <textarea id="why" rows="2"></textarea></div>
+        <div class="q"><label class="qlabel" for="conf">How confident are you that your answer is correct? <span id="confV" class="num">50</span> out of 100</label>
+          <input type="range" id="conf" min="0" max="100" value="50"></div>
+        <div class="row"><button class="btn" type="submit" id="submit"></button><span class="note" id="formMsg" role="status"></span></div>
+      </form>
+      <div id="result"></div>
+    </section>
+
+    <aside class="pane" aria-label="Researcher view">
+      <div class="panehead"><div><p class="eyebrow">Researcher view</p><h2>Recorded data</h2></div>
+        <button class="btn ghost" type="button" id="sample">Play a sample student</button></div>
+      <div class="stat" id="stats"></div>
+      <div>
+        <h3>Offloading score</h3>
+        <p class="note">Steps saved compared with the no-AI group. Higher means fewer steps done by the student.</p>
+      </div>
+      <div class="formula" id="formula"></div>
+      <div><h3>Time on each card</h3></div>
+      <div id="dwell" class="scroll"></div>
+      <div id="tryBox" class="scroll" hidden></div>
+      <div><h3>Event log</h3></div>
+      <div class="log" id="log" aria-live="polite"></div>
+      <button class="btn ghost" type="button" id="reset">Clear and start over</button>
+    </aside>
+  </div>
+
+  <section class="pane">
+    <h2>How the four conditions differ</h2>
+    <div class="scroll"><table>
+      <thead><tr><th></th><th>No AI</th><th>Immediate AI</th><th>Try first</th><th>Scaffolded AI tutor</th></tr></thead>
+      <tbody>
+        <tr><th>Problem and cards</th><td colspan="4">Same scenario, same six cards, same questions</td></tr>
+        <tr><th>AI available</th><td>Never</td><td>Already showing with the problem</td><td>Appears after a first answer</td><td>From the start, as a tutor panel</td></tr>
+        <tr><th>What the AI gives</th><td>Nothing</td><td>Full worked answer</td><td>The same full worked answer</td><td>Feedback on each step, hints, never the final answer</td></tr>
+        <tr><th>Student must do first</th><td>All of the work</td><td>Nothing</td><td>Submit an answer and a one-sentence reason</td><td>Reply to the tutor's questions</td></tr>
+        <tr><th>AI type</th><td>None</td><td>Fixed text, generated and checked in advance</td><td>Fixed text, generated and checked in advance</td><td>Live LLM through an API</td></tr>
+        <tr><th>Extra data</th><td>Gives the no-AI baseline</td><td>Cards opened after seeing the AI, which shows checking</td><td>First answer, reason, final answer, whether it changed</td><td>Typed messages, step accuracy, hints used</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="pane">
+    <div><h2>Four sample students, same scoring</h2>
+    <p class="note">Invented examples to show the calculation. The no-AI baseline of 5 cards is a placeholder. In the study, it comes from the real no-AI group on each problem.</p></div>
+    <div class="scroll"><table id="compare"></table></div>
+  </section>
+
+  <div class="two">
+    <section class="pane">
+      <h2>What the website records</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>Variable</th><th>What it means</th></tr></thead>
+        <tbody>
+          <tr><td><code>card_clicks</code></td><td>Every card click, including repeats</td></tr>
+          <tr><td><code>cards_total</code></td><td>Different cards opened on the problem (0 to 6)</td></tr>
+          <tr><td><code>card_seconds</code></td><td>Seconds each card stayed open, card by card</td></tr>
+          <tr><td><code>cards_before_ai</code></td><td>Cards opened before the AI answer appears or the first tutor message</td></tr>
+          <tr><td><code>cards_after_ai</code></td><td>New cards opened afterward, which shows checking</td></tr>
+          <tr><td><code>steps_saved</code></td><td>(No-AI mean cards − cards_total) ÷ no-AI mean cards</td></tr>
+          <tr><td><code>ai_opened_sec</code></td><td>Tutor: seconds until the first message</td></tr>
+          <tr><td><code>first_answer</code>, <code>final_answer</code></td><td>Try first: both answers</td></tr>
+          <tr><td><code>try_first_reason</code></td><td>Try first: the one-sentence reason, coded later with ICAP (Chi &amp; Wylie, 2014)</td></tr>
+          <tr><td><code>answer_changed</code></td><td>Try first: final answer differs from first answer</td></tr>
+          <tr><td><code>tutor_messages</code></td><td>Tutor: students' typed messages, coded later with the Study 1 codebook and with ICAP (Chi &amp; Wylie, 2014)</td></tr>
+          <tr><td><code>tutor_steps</code>, <code>hints_used</code></td><td>Tutor: steps right or wrong, and hints needed</td></tr>
+          <tr><td><code>accuracy</code></td><td>Questions correct out of 3</td></tr>
+          <tr><td><code>decision_confidence</code></td><td>Confidence that the answer is correct, 0 to 100</td></tr>
+          <tr><td><code>metacognitive_self_esteem</code></td><td>[Six] items after the last problem, [1 to 7]. Samples: "I am good at thinking," "I feel good about my ability to think through problems"</td></tr>
+          <tr><td><code>time_on_task</code></td><td>Seconds on the problem</td></tr>
+        </tbody>
+      </table>
+        <p class="hint">The website only saves the text. Trained coders code students' messages and reasons after data collection. The website does not code anything itself.</p></div>
+    </section>
+    <section class="pane">
+      <h2>One week later</h2>
+      <p>Students take an ungraded quiz in class through a lockdown browser. There are no cards and no AI. All items are new, and none repeats a practice problem. Each item has a 0 to 100 confidence rating.</p>
+      <table>
+        <thead><tr><th>Outcome</th><th>Sample item</th></tr></thead>
+        <tbody>
+          <tr><th>Memory ([5] items, one per key concept)</th><td>What does Levene's test check?<br>When do you read "Equal variances not assumed"?<br>What does a p value mean?<br>What p value makes a difference statistically significant?<br>What do you conclude when p is .05 or higher?</td></tr>
+          <tr><th>Application ([5] items)</th><td>A new SPSS output and scenario: which row do you read, what is the p value, and what do you conclude?</td></tr>
+        </tbody>
+      </table>
+      <div class="formula"><b>Calibration</b> = confidence − accuracy, averaged across items<br>Example: 90% confident on an item answered wrong: 90 − 0 = +90 (overconfident)<br>Example: 40% confident on an item answered right: 40 − 100 = −60 (underconfident)</div>
+      <p class="note">Calibration uses the quiz and not the class task, because task accuracy can reflect help from the AI.</p>
+    </section>
+  </div>
+
+  <p class="note">Prototype only. The sample output is computed from the means and SDs shown, except Levene's F and p, which are example values. The tutor replies here are scripted around four steps. For the pilot, API calls will make the tutor adaptive, with the same rules: give feedback on every reply, never repeat a question word for word, and never state the final answer. Study data will be stored on secure UM systems, and AI will run on a local LLM or a UM-approved setup. No data leaves this page.</p>
+</main>
+
+<script>
+const BASE=5;
+const COND={
+  none:{name:"No AI",sub:"Cards only"},
+  immediate:{name:"Immediate AI",sub:"AI answer already showing"},
+  try:{name:"Try first",sub:"Answer first, then AI appears"},
+  tutor:{name:"Scaffolded AI tutor",sub:"Feedback and hints"}
+};
+const spssGroup=`<table class="spss"><tr><th>Group</th><th>N</th><th>Mean</th><th>Std. Deviation</th></tr><tr><td>A: Practice questions</td><td>25</td><td>78.40</td><td>12.60</td></tr><tr><td>B: Rereading</td><td>40</td><td>72.90</td><td>6.80</td></tr></table>`;
+const CARDS=[
+ {id:"group",t:"Group statistics",k:"Output",html:spssGroup},
+ {id:"levene",t:"Levene's test",k:"Output",html:`<table class="spss"><tr><th>Levene's Test for Equality of Variances</th><th>F</th><th>Sig.</th></tr><tr><td>Test score</td><td>9.87</td><td>.003</td></tr></table>`},
+ {id:"rowA",t:"t-test: equal variances assumed",k:"Output",html:`<table class="spss"><tr><th>Row</th><th>t</th><th>df</th><th>Sig. (2-tailed)</th><th>Mean Diff.</th><th>95% CI</th></tr><tr><td>Equal variances assumed</td><td>2.29</td><td>63</td><td>.026</td><td>5.50</td><td>[0.69, 10.31]</td></tr></table>`},
+ {id:"rowB",t:"t-test: equal variances not assumed",k:"Output",html:`<table class="spss"><tr><th>Row</th><th>t</th><th>df</th><th>Sig. (2-tailed)</th><th>Mean Diff.</th><th>95% CI</th></tr><tr><td>Equal variances not assumed</td><td>2.01</td><td>32.86</td><td>.053</td><td>5.50</td><td>[−0.08, 11.08]</td></tr></table>`},
+ {id:"noteL",t:"How to read Levene's test",k:"Course notes",html:`<p>Levene's test checks whether the two groups have similar variances. If its Sig. value is below .05, the variances differ, so read the row labeled "Equal variances not assumed." If it is .05 or higher, read "Equal variances assumed."</p>`},
+ {id:"noteP",t:"How to read a p value",k:"Course notes",html:`<p>The p value is the probability of a difference at least this large if there were no true difference between the groups. If p is below .05, the difference is statistically significant. If not, we do not conclude that the groups differ.</p>`}
+];
+const AI_ANSWER=`<p><b>Row:</b> Levene's test is significant (p = .003), so the variances differ. Read "Equal variances not assumed."</p><p><b>p value:</b> t(32.86) = 2.01, p = .053.</p><p><b>Conclusion:</b> p is above .05, so the groups did not differ significantly, even though Group A's mean was higher.</p>`;
+const KEY={q1:"notassumed",q2:"053",q3:"none"};
+const CONCEPTS=`<h3>Key concepts</h3><ul class="steps"><li>Levene's test checks whether two groups have similar variances.</li><li>If Levene's Sig. is below .05, read "Equal variances not assumed." If not, read "Equal variances assumed."</li><li>A p value is the probability of a difference at least this large if there were no true difference between the groups.</li><li>If p is below .05, the difference is statistically significant.</li><li>If p is .05 or higher, we do not conclude that the groups differ.</li></ul>`;
+const LABEL={assumed:"Assumed row",notassumed:"Not assumed row","003":".003","026":".026","053":".053",a:"A higher",none:"No difference",b:"B higher"};
+const STEPS=[
+ {name:"Check Levene's test.",
+  ask:"Start with the Levene's test card. Is its Sig. value above or below .05?",short:"What do you check first, and what does it show?",
+  test(x){
+   if(/above|higher|greater|over|not significant/.test(x))return{bad:"Not quite. Levene's Sig. is .003. Is .003 smaller or larger than .05?"};
+   if(/below|less|smaller|lower|under|003|significant|differ|unequal|not equal/.test(x))return{ok:"Yes. Levene's Sig. is .003, which is below .05, so the two groups' variances differ."};
+   if(/lev[ei]ne?/.test(x))return{part:"Right, Levene's test is the place to start. Now find its Sig. value. Is that number above or below .05?"};
+   return null;},
+  hints:["Open the Levene's test card and find the Sig. value.","Sig. is the last number in that table. Is it smaller or larger than .05?","The notes card on Levene's test gives the rule. Use it with the Sig. value of .003."]},
+ {name:"Choose the row of the t-test table.",
+  ask:"Based on that, which row of the t-test table should you read?",short:"Which row follows from that?",
+  test(x){
+   if(/not assumed|not equal|unequal|second|bottom|differ/.test(x))return{ok:"Yes. The variances differ, so that row is the right one."};
+   if(/sig|two.?tail|2.?tail|column|p value/.test(x))return{bad:"Sig. (2-tailed) is a column, and right now you are choosing a row. The two rows are \"Equal variances assumed\" and \"Equal variances not assumed.\" Which one fits what Levene's test showed?"};
+   if(/assumed|first|top|equal/.test(x))return{bad:"Not quite. That row assumes the variances are similar, but Levene's test showed they differ. Which row fits that result?"};
+   return null;},
+  hints:["Open the notes card on Levene's test. It says which row to use.","When variances differ, you can't assume they are equal. Which row label fits that?","The two labels are \"assumed\" and \"not assumed.\" Pick the one that matches Levene's result."]},
+ {name:"Find the p value in that row.",
+  ask:"What p value does that row show?",short:"What p value do you use?",
+  test(x){
+   if(/053/.test(x))return{ok:"Yes. That row shows p = .053."};
+   if(/026/.test(x))return{bad:"That p value comes from the other row. Check the row you chose."};
+   if(/003/.test(x))return{bad:"That is the Sig. value from Levene's test. You need Sig. (2-tailed) from your t-test row."};
+   return null;},
+  hints:["Open the card for the row you chose.","Find the column labeled Sig. (2-tailed).","Read across your row to Sig. (2-tailed), and tell me the number."]},
+ {name:"Compare the p value with .05.",
+  ask:"Compare that p value with .05. Is the difference significant?",short:"What does that p value mean for the groups?",
+  test(x){
+   if(/\bnot\b|\bno\b|isn.?t|nonsignificant|above|higher|greater|larger/.test(x))return{ok:"Yes, that fits the rule."};
+   if(/yes|significant|below|lower|less|smaller/.test(x))return{bad:"Check again. Is .053 above or below .05? Compare the digits."};
+   return null;},
+  hints:["Open the notes card on p values for the rule.","If p is below .05, the difference is significant. If it is not, the difference is not significant.","Compare the digits: .053 and .050. Which is larger?"]}
+];
+let S;
+function fresh(cond,support){
+  const s={cond,support:support||"full",cards:[],after:[],active:null,openedAt:null,clicks:0,opens:{},dwell:{},aiOpen:false,aiSec:null,first:null,final:null,chat:[],step:0,hint:0,hintsUsed:0,events:[],t0:Date.now(),sim:null,done:false};
+  if(cond==="tutor")s.chat.push({w:"t",x:STEPS[0].ask});
+  if(cond==="immediate"){s.aiOpen=true;s.aiSec=0;s.events.push([0,"AI answer shown with the problem"]);}
+  return s;
+}
+const $=id=>document.getElementById(id);
+const sec=()=>S.sim!==null?S.sim:Math.round((Date.now()-S.t0)/1000);
+function ev(t){S.events.push([sec(),t]);}
+function metrics(s){const total=s.cards.length;return{total,clicks:s.clicks,repeats:s.clicks-total,before:total-s.after.length,after:s.after.length,saved:(BASE-total)/BASE};}
+function fmt(x){return (x<0?"−":"")+Math.abs(x).toFixed(2);}
+function aiStarted(){return S.aiSec!==null;}
+function closeCard(){if(S.active){S.dwell[S.active]=(S.dwell[S.active]||0)+sec()-S.openedAt;S.openedAt=sec();}}
+function dwellNow(id){return (S.dwell[id]||0)+(S.active===id&&!S.done?sec()-S.openedAt:0);}
+function renderTabs(){
+  $("tabs").innerHTML=Object.keys(COND).map(k=>`<button class="tab" role="tab" type="button" id="tab-${k}" aria-selected="${S.cond===k}" data-c="${k}"><b>${COND[k].name}</b><span>${COND[k].sub}</span></button>`).join("");
+  $("condName").textContent=COND[S.cond].name;
+}
+function renderCards(){
+  $("cards").innerHTML=CARDS.map(c=>`<button type="button" class="card ${S.active===c.id?"on":""}" data-id="${c.id}" aria-pressed="${S.active===c.id}"><span>${c.t}</span><small>${c.k}</small></button>`).join("");
+  const c=CARDS.find(x=>x.id===S.active);
+  $("viewer").innerHTML=c?`<p class="eyebrow">${c.t}</p>${c.html}`:`<p class="hint">Click a card to read it.</p>`;
+}
+function tutorTurn(text){
+  const x=text.toLowerCase(),light=S.support==="light";
+  if(S.step>=STEPS.length)return{r:"You have worked through each step. Mark your answers on the form.",code:"scaffolding",out:"after last step"};
+  const st=STEPS[S.step];
+  const askAnswer=/just tell|what is the answer|what's the answer|give me|the answer/.test(x);
+  const t=askAnswer?null:st.test(x);
+  if(t&&t.ok){
+    S.step++;S.hint=0;
+    if(S.step>=STEPS.length)return{r:(light?"Right.":t.ok)+" You have worked through each step. Now mark your answers on the form.",code:"scaffolding",out:"correct"};
+    const n=STEPS[S.step];
+    return{r:(light?"Right. "+n.short:t.ok+" "+n.ask),code:"scaffolding",out:"correct"};
+  }
+  if(t&&t.bad)return{r:t.bad,code:"scaffolding",out:"incorrect"};
+  if(t&&t.part)return{r:t.part,code:"scaffolding",out:"partly correct"};
+  const lead=askAnswer?"I can't give you the answer, but I can help with this step. ":"I can't tell your answer from that. ";
+  if(S.hint<st.hints.length){const h=st.hints[S.hint];S.hint++;S.hintsUsed++;return{r:lead+h,code:askAnswer?"offloading":"unclear",out:"hint "+S.hint};}
+  return{r:"I have shared all my hints for this step. Mark your best answer on the form. You will see the correct answer after you submit.",code:askAnswer?"offloading":"unclear",out:"out of hints"};
+}
+function renderAI(){
+  const a=$("aiArea");
+  if(S.cond==="none"){a.innerHTML="";return;}
+  if(S.cond==="tutor"){
+    const full=S.support==="full";
+    a.innerHTML=`<div class="aibox"><div class="panehead"><h3>AI tutor</h3>
+      <div class="row"><label class="note" for="support">Demo only: show</label>
+      <select id="support"><option value="full" ${full?"selected":""}>Early problem (full support)</option><option value="light" ${!full?"selected":""}>Final problem (faded support)</option></select></div></div>
+      ${full?`<ol class="steps">${STEPS.map((s,i)=>`<li>${i<S.step?"✓ ":""}${i===S.step?`<b>${s.name}</b>`:s.name}</li>`).join("")}</ol>`:""}
+      <div class="chat" id="chat">${S.chat.map(m=>`<div class="msg ${m.w}">${m.x}</div>`).join("")}</div>
+      <div class="row" style="flex-wrap:nowrap"><input type="text" id="tin" aria-label="Your reply to the tutor" placeholder="Type your reply"><button class="btn ai" type="button" id="tsend">Send</button></div>
+      <p class="note">The tutor tells you if each step is right. It will not give you the final answer.</p></div>`;
+    return;
+  }
+  a.innerHTML=S.aiOpen?`<div class="aibox"><h3>AI's answer</h3>${AI_ANSWER}</div>`:`<p class="note">The AI's answer will appear after you submit your first answer.</p>`;
+}
+function renderForm(){
+  const b=$("submit"),first=S.cond==="try"&&!S.first;
+  b.textContent=first?"Submit first answer":S.cond==="try"?"Submit final answer":"Submit answer";
+  b.disabled=S.done;
+  $("whyBlock").hidden=!first;
+}
+function getForm(){
+  const v=n=>{const e=document.querySelector(`input[name=${n}]:checked`);return e?e.value:null;};
+  return{q1:v("q1"),q2:v("q2"),q3:v("q3"),why:$("why").value.trim(),conf:+$("conf").value};
+}
+function setForm(f){
+  ["q1","q2","q3"].forEach(n=>document.querySelectorAll(`input[name=${n}]`).forEach(e=>e.checked=e.value===f[n]));
+  $("why").value=f.why||"";$("conf").value=f.conf;$("confV").textContent=f.conf;
+}
+function clearForm(){setForm({q1:null,q2:null,q3:null,why:"",conf:50});$("formMsg").textContent="";}
+const score=f=>["q1","q2","q3"].filter(k=>f[k]===KEY[k]).length;
+function changed(){return S.first&&S.final?["q1","q2","q3"].some(k=>S.first[k]!==S.final[k]):null;}
+function renderResult(){
+  $("result").innerHTML=S.done?`<div class="result"><h3>Correct answer</h3>${AI_ANSWER}${CONCEPTS}<p class="note">You got ${score(S.final)} of 3 correct. The next problem would start now.</p></div>`:"";
+}
+function renderData(){
+  const m=metrics(S),ch=changed(),na=S.cond==="none";
+  const items=[["Total card clicks",m.clicks],["Different cards",m.total],["Repeat opens",m.repeats],["AI first shown or used",na?"n/a":(aiStarted()?S.aiSec+" s":"not yet")],["Cards before AI",na?"n/a":m.before],["New cards after AI",na?"n/a":m.after]];
+  if(S.cond==="tutor")items.push(["Tutor messages",S.chat.filter(c=>c.w==="s").length],["Hints used",S.hintsUsed]);
+  if(S.done)items.push(["Accuracy",score(S.final)+" of 3"],["Decision confidence",S.final.conf]);
+  $("stats").innerHTML=items.map(i=>`<div><b>${i[1]}</b><span>${i[0]}</span></div>`).join("");
+  $("formula").innerHTML=`steps_saved = (no-AI mean − different cards) ÷ no-AI mean<br>= (${BASE} − ${m.total}) ÷ ${BASE} = <b>${fmt(m.saved)}</b>`+(na?`<br>No-AI students set the baseline, so their average is 0.00.`:"");
+  const seen=CARDS.filter(c=>S.opens[c.id]);
+  $("dwell").innerHTML=seen.length?`<table><thead><tr><th>Card</th><th>Opens</th><th>Seconds</th></tr></thead><tbody>${seen.map(c=>`<tr><td>${c.t}</td><td class="num">${S.opens[c.id]}</td><td class="num">${dwellNow(c.id)}</td></tr>`).join("")}</tbody></table>`:`<p class="note">No cards opened yet.</p>`;
+  if(S.cond==="try"){
+    const q=[["Row","q1"],["p value","q2"],["Conclusion","q3"]],c=(f,k)=>f?LABEL[f[k]]+(f[k]===KEY[k]?" ✓":" ✗"):"not yet";
+    $("tryBox").innerHTML=`<h3>First and final answers</h3><table><thead><tr><th></th><th>First</th><th>Final</th></tr></thead><tbody>${q.map(r=>`<tr><th>${r[0]}</th><td>${c(S.first,r[1])}</td><td>${c(S.final,r[1])}</td></tr>`).join("")}<tr><th>Decision confidence</th><td class="num">${S.first?S.first.conf:"not yet"}</td><td class="num">${S.final?S.final.conf:"not yet"}</td></tr></tbody></table><p class="note">Answer changed after AI: ${ch===null?"not yet":ch?"yes":"no"}.${S.first&&S.first.why?" First explanation: "+S.first.why.replace(/</g,"&lt;"):""}</p>`;
+    $("tryBox").hidden=false;
+  }else $("tryBox").hidden=true;
+  $("log").innerHTML=S.events.length?S.events.map(e=>`<div><span>${e[0]}s</span><span>${e[1]}</span></div>`).join(""):`<div><span>0s</span><span>Problem shown</span></div>`;
+  $("log").scrollTop=$("log").scrollHeight;
+}
+function renderAll(){renderTabs();renderCards();renderAI();renderForm();renderResult();renderData();}
+function openCard(id,quiet){
+  closeCard();S.clicks++;S.opens[id]=(S.opens[id]||0)+1;S.active=id;S.openedAt=sec();
+  if(!S.cards.includes(id)){S.cards.push(id);if(aiStarted())S.after.push(id);}
+  ev("Opened card: "+CARDS.find(c=>c.id===id).t);
+  if(!quiet){renderCards();renderData();}
+}
+function openAI(){S.aiOpen=true;if(S.aiSec===null)S.aiSec=sec();ev("AI answer shown");}
+function send(text){
+  if(S.aiSec===null)S.aiSec=sec();
+  const{r,code,out}=tutorTurn(text);
+  S.chat.push({w:"s",x:text.replace(/</g,"&lt;")},{w:"t",x:r});
+  ev(`Student message saved for later coding. Tutor's grading of the step: ${out}`);
+}
+function submit(f){
+  if(S.cond==="try"&&!S.first){S.first=f;ev("Submitted first answer");openAI();return;}
+  closeCard();S.final=f;S.done=true;ev(`Submitted answer: ${score(f)} of 3 correct, confidence ${f.conf}`);
+}
+function start(c,support){S=fresh(c,support);clearForm();renderAll();}
+
+/* Sample students. Each is a fixed path through the same functions the page uses. */
+const SAMPLES={
+ none(){at(10);openCard("group",1);at(30);openCard("levene",1);at(55);openCard("noteL",1);at(90);openCard("rowB",1);at(120);openCard("noteP",1);at(150);openCard("rowB",1);at(170);fill({q1:"notassumed",q2:"053",q3:"none",conf:65});submit(getForm());},
+ immediate(){at(40);fill({q1:"notassumed",q2:"053",q3:"none",conf:90});submit(getForm());},
+ try(){at(12);openCard("group",1);at(30);openCard("rowA",1);at(80);fill({q1:"assumed",q2:"026",q3:"a",why:"p is below .05, so Group A scored higher.",conf:70});submit(getForm());at(100);openCard("levene",1);at(115);openCard("rowB",1);at(140);fill({q1:"notassumed",q2:"053",q3:"none",conf:60});submit(getForm());},
+ tutor(){at(10);openCard("group",1);at(25);send("I would compare the means");at(45);openCard("levene",1);at(60);send("Levene's Sig is .003 so it is below");at(75);openCard("rowB",1);at(85);send("not assumed");at(95);send(".053");at(105);send("not significant");at(130);fill({q1:"notassumed",q2:"053",q3:"none",conf:70});submit(getForm());}
+};
+function at(t){S.sim=t;}
+function fill(f){setForm(f);}
+function playSample(c){start(c);S.sim=0;SAMPLES[c]();renderAll();}
+function sampleRow(c){
+  const keep=S,form=getForm();
+  S=fresh(c);S.sim=0;SAMPLES[c]();
+  const m=metrics(S),na=c==="none",r={c,clicks:m.clicks,total:m.total,before:na?"n/a":m.before,after:na?"n/a":m.after,saved:m.saved,ai:na?"n/a":S.aiSec+" s",acc:score(S.final),conf:S.final.conf};
+  S=keep;setForm(form);return r;
+}
+function renderCompare(){
+  const rows=Object.keys(COND).map(sampleRow);
+  $("compare").innerHTML=`<thead><tr><th>Condition</th><th>Total clicks</th><th>Different cards</th><th>Before AI</th><th>After AI</th><th>Steps saved</th><th>AI first shown or used</th><th>Accuracy</th><th>Decision confidence</th></tr></thead><tbody>`+rows.map(r=>`<tr><th>${COND[r.c].name}</th><td class="num">${r.clicks}</td><td class="num">${r.total}</td><td class="num">${r.before}</td><td class="num">${r.after}</td><td class="num">${fmt(r.saved)}</td><td class="num">${r.ai}</td><td class="num">${r.acc} of 3</td><td class="num">${r.conf}</td></tr>`).join("")+`</tbody>`;
+}
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-c]");
+  if(t){start(t.dataset.c);return;}
+  const c=e.target.closest(".card");
+  if(c){S.sim=null;openCard(c.dataset.id);return;}
+  if(e.target.id==="tsend"){S.sim=null;const i=$("tin");if(i.value.trim()){send(i.value.trim());renderAI();renderData();const ch=$("chat");if(ch)ch.scrollTop=ch.scrollHeight;$("tin").focus();}return;}
+  if(e.target.id==="sample"){playSample(S.cond);return;}
+  if(e.target.id==="reset"){start(S.cond);return;}
+});
+document.addEventListener("keydown",e=>{if(e.target.id==="tin"&&e.key==="Enter"){e.preventDefault();$("tsend").click();}});
+document.addEventListener("change",e=>{if(e.target.id==="support"){S.support=e.target.value;renderAI();}});
+$("conf").addEventListener("input",e=>{$("confV").textContent=e.target.value;});
+$("form").addEventListener("submit",e=>{
+  e.preventDefault();
+  if(S.done)return;
+  const f=getForm(),first=S.cond==="try"&&!S.first;
+  if(!f.q1||!f.q2||!f.q3||(first&&!f.why)){$("formMsg").textContent=first?"Answer all three questions and write your explanation first.":"Answer all three questions first.";return;}
+  $("formMsg").textContent="";S.sim=null;submit(f);renderAll();
+});
+S=fresh("immediate");renderCompare();playSample("immediate");
+</script>
+
+</body>
+</html>
