@@ -409,8 +409,12 @@ function exportAnswers(){
   L.push("",S.first?"Final answer":"Answer",ans(S.final));
   if(!S.first&&S.final.why)L.push("Reason: "+S.final.why);
   L.push("Confidence: "+S.final.conf+" of 100","Score: "+score(S.final)+" of 3","","This file holds only your answers. It has no name, UM ID, or email.");
-  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([L.join("\n")],{type:"text/plain"}));a.download="my_answers.txt";document.body.appendChild(a);a.click();a.remove();ev("Exported answers");
+  const txt=L.join("\n");ev("Exported answers");
+  if(DL){DL.save({filename:"my_answers.txt",data:txt}).catch(()=>{});return;}
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain"}));a.download="my_answers.txt";document.body.appendChild(a);a.click();a.remove();
 }
+let DL=null;
+try{if(window.claude&&typeof window.claude.use==="function")window.claude.use("downloads").then(d=>{DL=d;}).catch(()=>{});}catch(e){}
 function submit(f){
   if(S.cond==="try"&&!S.first){S.first=f;ev("Submitted first answer");openAI();return;}
   closeCard();S.final=f;S.done=true;ev(`Submitted answer: ${score(f)} of 3 correct, confidence ${f.conf}`);
