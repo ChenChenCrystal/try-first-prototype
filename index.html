@@ -369,7 +369,7 @@ function clearForm(){setForm({q1:null,q2:null,q3:null,why:"",conf:50});$("formMs
 const score=f=>["q1","q2","q3"].filter(k=>f[k]===KEY[k]).length;
 function changed(){return S.first&&S.final?["q1","q2","q3"].some(k=>S.first[k]!==S.final[k]):null;}
 function renderResult(){
-  $("result").innerHTML=S.done?`<div class="result"><h3>Correct answer</h3>${AI_ANSWER}${CONCEPTS}<p class="note">You got ${score(S.final)} of 3 correct. The next problem would start now.</p></div>`:"";
+  $("result").innerHTML=S.done?`<div class="result"><h3>Correct answer</h3>${AI_ANSWER}${CONCEPTS}<p class="note">You got ${score(S.final)} of 3 correct. The next problem would start now.</p><p><button type="button" class="btn ghost" id="export">Export my answers</button></p><p class="note">The file holds only your answers, with no name, UM ID, or email. Upload it to Canvas.</p></div>`:"";
 }
 function renderData(){
   const m=metrics(S),ch=changed(),na=S.cond==="none";
@@ -401,6 +401,15 @@ function send(text){
   const{r,code,out}=tutorTurn(text);
   S.chat.push({w:"s",x:text.replace(/</g,"&lt;")},{w:"t",x:r});
   ev(`Student message saved for later coding. Tutor's grading of the step: ${out}`);
+}
+function exportAnswers(){
+  const ans=f=>`Row: ${LABEL[f.q1]}\np value: ${LABEL[f.q2]}\nConclusion: ${LABEL[f.q3]}`;
+  const L=["Try First, Then Ask: practice activity","Exported: "+new Date().toLocaleString(),"","Problem 1"];
+  if(S.first)L.push("","First answer",ans(S.first),"Reason: "+(S.first.why||""));
+  L.push("",S.first?"Final answer":"Answer",ans(S.final));
+  if(!S.first&&S.final.why)L.push("Reason: "+S.final.why);
+  L.push("Confidence: "+S.final.conf+" of 100","Score: "+score(S.final)+" of 3","","This file holds only your answers. It has no name, UM ID, or email.");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([L.join("\n")],{type:"text/plain"}));a.download="my_answers.txt";document.body.appendChild(a);a.click();a.remove();ev("Exported answers");
 }
 function submit(f){
   if(S.cond==="try"&&!S.first){S.first=f;ev("Submitted first answer");openAI();return;}
@@ -434,6 +443,7 @@ document.addEventListener("click",e=>{
   const c=e.target.closest(".card");
   if(c){S.sim=null;openCard(c.dataset.id);return;}
   if(e.target.id==="tsend"){S.sim=null;const i=$("tin");if(i.value.trim()){send(i.value.trim());renderAI();renderData();const ch=$("chat");if(ch)ch.scrollTop=ch.scrollHeight;$("tin").focus();}return;}
+  if(e.target.id==="export"){exportAnswers();renderData();return;}
   if(e.target.id==="sample"){playSample(S.cond);return;}
   if(e.target.id==="reset"){start(S.cond);return;}
 });
